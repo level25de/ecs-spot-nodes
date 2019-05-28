@@ -51,8 +51,6 @@ func HandleLambdaEvent(event events.CloudWatchEvent) (MyResponse, error) {
 		clusterArn = string(dat["clusterArn"].(string))
 	}
 
-	glog.Infof("Cluster ARN: %d", clusterArn)
-
 	instances := countECSInstances(clusterArn)
 
 	sess := aws.InitASGAwsSession(os.Getenv("AWS_REGION"))
