@@ -17,7 +17,7 @@ type MyResponse struct {
 	Asg     string `json:"asg:"`
 }
 
-func countECSInstances(arn string) (int) {
+func countECSInstances(arn string) (int, error) {
 	sess := aws.InitECSAwsSession(os.Getenv("AWS_REGION"))
 
 	input := &ecs.ListContainerInstancesInput{
@@ -25,10 +25,14 @@ func countECSInstances(arn string) (int) {
 	}
 	instances, _ := sess.ListContainerInstances(input)
 
-	instanceData, _ := sess.DescribeContainerInstances(&ecs.DescribeContainerInstancesInput{
+	instanceData, err := sess.DescribeContainerInstances(&ecs.DescribeContainerInstancesInput{
 		Cluster: a.String(arn),
 		ContainerInstances: instances.ContainerInstanceArns,
 	})
+
+	if err != nil {
+		return 0, err
+	}
 
 	instanceCount := 0
 
@@ -39,7 +43,7 @@ func countECSInstances(arn string) (int) {
 		}
 	}
 
-	return instanceCount
+	return instanceCount, nil
 }
 
 func HandleLambdaEvent(event events.CloudWatchEvent) (MyResponse, error) {
@@ -51,18 +55,22 @@ func HandleLambdaEvent(event events.CloudWatchEvent) (MyResponse, error) {
 		clusterArn = string(dat["clusterArn"].(string))
 	}
 
-	instances := countECSInstances(clusterArn)
+	instances, err := countECSInstances(clusterArn)
+
+	if err != nil {
+		return MyResponse{}, err
+	}
 
 	sess := aws.InitASGAwsSession(os.Getenv("AWS_REGION"))
 	_, spot_requested := aws.CheckASG(sess, os.Getenv("ASG_SPOT"))
 
 	if instances != spot_requested {
-		glog.Infof("Difference between instance counts detected. Correcting with ondemand")
-
 		cap := int64(spot_requested - instances)
 		if cap < 0 {
 			cap = 0
 		}
+
+		glog.Infof("Difference between instance counts detected. Correcting: %d (spot: %d / instances: %d)", cap, spot_requested, instances)
 
 		_, err := aws.UpdateASGInstanceCount(sess, os.Getenv("ASG_ONDEMAND"), cap)
 

@@ -1,0 +1,58 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "asgwrite",
+            "Effect": "Allow",
+            "Action": [
+                "autoscaling:SetDesiredCapacity",
+                "autoscaling:UpdateAutoScalingGroup"
+            ],
+            "Resource": [
+                "arn:aws:autoscaling:*:*:autoScalingGroup:*:autoScalingGroupName/ecs-spot",
+                "arn:aws:autoscaling:*:*:autoScalingGroup:*:autoScalingGroupName/ecs-spot-spot"
+            ]
+        },
+        {
+            "Sid": "asgread",
+            "Effect": "Allow",
+            "Action": [
+                "autoscaling:DescribeAutoScalingInstances",
+                "autoscaling:DescribeAutoScalingGroups"
+            ],
+            "Resource": [
+                "*"
+            ]
+        },
+        {
+            "Sid": "ecs",
+            "Effect": "Allow",
+            "Action": [
+                "ecs:ListContainerInstances",
+                "ecs:DescribeContainerInstances"
+            ],
+            "Resource": [
+                "arn:aws:ecs:*:*:cluster/ecsdemo",
+                "arn:aws:ecs:*:*:container-instance/*"
+            ]
+        },
+        {
+            "Sid": "cloudwatchputlogs",
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": [
+                "arn:aws:logs:*:*:log-group:/aws/lambda/ecs-scale-handlespot:*",
+                "arn:aws:logs:*:*:log-group:/aws/lambda/ecs-instancechange-handler:*"
+            ]
+        },
+        {
+            "Sid": "cloudwatchcreateloggroup",
+            "Effect": "Allow",
+            "Action": "logs:CreateLogGroup",
+            "Resource": "arn:aws:logs:*:*:*"
+        }
+    ]
+}
