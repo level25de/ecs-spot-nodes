@@ -1,4 +1,9 @@
 .terraform
 terraform-output.tfvars
 terraform.tfvars
+*tfstate*
 .DS_Store
+*.zip
+**/bin/
+planfile
+*.tfplan

@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/level25de/ecs-spot-nodes/lambda-handler/pkg/aws"
 	"flag"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/golang/glog"
+	"github.com/level25de/ecs-spot-nodes/lambda-handler/pkg/aws"
 	"os"
 )
 
@@ -37,7 +37,7 @@ func HandleLambdaEvent(event events.AutoScalingEvent) (MyResponse, error) {
 		}
 
 		glog.Infof("Updating ondemand ASG instance count to: %d", delta)
-		_, err := aws.UpdateASGInstanceCount(sess, os.Getenv("ASG_ONDEMAND"), int64(delta))
+		err := aws.UpdateASGInstanceCount(sess, os.Getenv("ASG_ONDEMAND"), int64(delta))
 
 		if err != nil {
 			return MyResponse{}, err
@@ -47,7 +47,7 @@ func HandleLambdaEvent(event events.AutoScalingEvent) (MyResponse, error) {
 	}
 
 	return MyResponse{
-		Asg:     os.Getenv("ASG_MASTER"),
+		Asg:     os.Getenv("ASG_ONDEMAND"),
 		Message: event.Detail["StatusMessage"].(string),
 	}, nil
 }

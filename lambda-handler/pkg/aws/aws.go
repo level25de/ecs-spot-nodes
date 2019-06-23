@@ -37,7 +37,7 @@ func GetASGData(asg *autoscaling.AutoScaling, group string) (*autoscaling.Group,
 	return data.AutoScalingGroups[0], nil
 }
 
-func UpdateASGInstanceCount(sess *autoscaling.AutoScaling, asg string, desired int64) (bool, error) {
+func UpdateASGInstanceCount(sess *autoscaling.AutoScaling, asg string, desired int64) error {
 	input := &autoscaling.UpdateAutoScalingGroupInput{
 		AutoScalingGroupName: aws.String(asg),
 		DesiredCapacity:      aws.Int64(desired),
@@ -46,10 +46,10 @@ func UpdateASGInstanceCount(sess *autoscaling.AutoScaling, asg string, desired i
 	_, err := sess.UpdateAutoScalingGroup(input)
 
 	if err != nil {
-		return false, err
+		return err
 	}
 
-	return true, nil
+	return nil
 }
 
 func CheckASG(sess *autoscaling.AutoScaling, group string) (int, int) {

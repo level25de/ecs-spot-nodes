@@ -1,15 +1,15 @@
 package main
 
 import (
-	"github.com/level25de/ecs-spot-nodes/lambda-handler/pkg/aws"
-	a "github.com/aws/aws-sdk-go/aws"
+	"encoding/json"
 	"flag"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	a "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/golang/glog"
+	"github.com/level25de/ecs-spot-nodes/lambda-handler/pkg/aws"
 	"os"
-	"encoding/json"
 )
 
 type MyResponse struct {
@@ -26,7 +26,7 @@ func countECSInstances(arn string) (int, error) {
 	instances, _ := sess.ListContainerInstances(input)
 
 	instanceData, err := sess.DescribeContainerInstances(&ecs.DescribeContainerInstancesInput{
-		Cluster: a.String(arn),
+		Cluster:            a.String(arn),
 		ContainerInstances: instances.ContainerInstanceArns,
 	})
 
@@ -38,7 +38,7 @@ func countECSInstances(arn string) (int, error) {
 
 	for _, details := range instanceData.ContainerInstances {
 		glog.Infof("Status: %s", *details.Status)
-		if *details.Status == "ACTIVE" { 
+		if *details.Status == "ACTIVE" {
 			instanceCount++
 		}
 	}
@@ -51,7 +51,7 @@ func HandleLambdaEvent(event events.CloudWatchEvent) (MyResponse, error) {
 	{
 		var dat map[string]interface{}
 		_ = json.Unmarshal(event.Detail, &dat)
-		
+
 		clusterArn = string(dat["clusterArn"].(string))
 	}
 
@@ -72,13 +72,13 @@ func HandleLambdaEvent(event events.CloudWatchEvent) (MyResponse, error) {
 
 		glog.Infof("Difference between instance counts detected. Correcting: %d (spot: %d / instances: %d)", cap, spot_requested, instances)
 
-		_, err := aws.UpdateASGInstanceCount(sess, os.Getenv("ASG_ONDEMAND"), cap)
+		err := aws.UpdateASGInstanceCount(sess, os.Getenv("ASG_ONDEMAND"), cap)
 
 		if err != nil {
 			return MyResponse{}, err
 		}
 	}
-	
+
 	return MyResponse{
 		Asg:     os.Getenv("ASG_ONDEMAND"),
 		Message: string("success"),
