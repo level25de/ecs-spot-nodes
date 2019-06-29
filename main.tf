@@ -66,7 +66,10 @@ module "lambda-ecs" {
     "ECS Container Instance State Change"
   ],
   "detail": {
-    "status": ["DRAINING"]
+    "status": ["DRAINING"],
+    "clusterArn": [
+      "${module.ecs.ecs_cluster.arn}"
+    ]
   }
 }
 PATTERN
@@ -97,8 +100,14 @@ module "lambda-scale" {
 {
   "detail-type": [
     "EC2 Instance Launch Successful",
+    "EC2 Instance Launch Unsuccessful",
     "EC2 Instance Terminate Successful"
-  ]
+  ],
+  "detail": {
+    "AutoScalingGroupName": [
+      "${module.ecs_spot.asg_spot_name}"
+    ]
+  }
 }
 PATTERN
 }
