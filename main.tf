@@ -68,7 +68,7 @@ module "lambda-ecs" {
   "detail": {
     "status": ["DRAINING"],
     "clusterArn": [
-      "${module.ecs.ecs_cluster.arn}"
+      "${module.ecs.ecs_cluster_arn}"
     ]
   }
 }
