@@ -20,6 +20,10 @@ GO_LDFLAGS := '-extldflags "-static"
 GO_LDFLAGS += -w -s
 GO_LDFLAGS += '
 
+.PHONY: clean test zip
+
+all: clean bin/scale-linux bin/ecs-linux zip
+
 bin/scale: $(GO_FILES)
 	GOARCH=$(GOARCH) GOOS=$(GOOS) CGO_ENABLED=0 go build -ldflags $(GO_LDFLAGS) -o $@ cmd/scale/main.go
 
@@ -32,15 +36,12 @@ bin/ecs: $(GO_FILES)
 bin/ecs-linux: $(GO_FILES)
 	GOARCH=$(GOARCH) GOOS=linux CGO_ENABLED=0 go build -ldflags $(GO_LDFLAGS) -o $@ cmd/ecs/main.go
 
-.PHONY: test
 test: bin/scale
 	go test -cover -v -timeout 60s `go list ./... | grep -v vendor`
 
-.PHONY: clean
 clean:
-	rm bin/*
+	rm -rf bin/
 
-.PHONY: zip
-zip: bin/scale bin/ecs
-	cd bin && zip scale.zip scale ecs
+zip: bin/scale-linux bin/ecs-linux
+	cd bin && zip scale.zip scale-linux ecs-linux
 	mv bin/scale.zip ./scale.zip
